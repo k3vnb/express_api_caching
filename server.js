@@ -1,14 +1,11 @@
 require('dotenv').config()
 const express = require('express')
 const morgan = require('morgan')
-
-console.log(process.env.API_TOKEN)
+const POKEDEX = require('./pokedex.json')
 
 const app = express()
 
 app.use(morgan('dev'))
-
-const validTypes = [`Bug`, `Dark`, `Dragon`, `Electric`, `Fairy`, `Fighting`, `Fire`, `Flying`, `Ghost`, `Grass`, `Ground`, `Ice`, `Normal`, `Poison`, `Psychic`, `Rock`, `Steel`, `Water`]
 
 app.use(function validateBearerToken(req, res, next){
     // const bearerToken = req.get('Authorization').split(' ')[1]
@@ -25,11 +22,24 @@ app.use(function validateBearerToken(req, res, next){
     next()
 })
 
+const validTypes = [`Bug`, `Dark`, `Dragon`, `Electric`, `Fairy`, `Fighting`, `Fire`, `Flying`, `Ghost`, `Grass`, `Ground`, `Ice`, `Normal`, `Poison`, `Psychic`, `Rock`, `Steel`, `Water`]
+
 function handleGetTypes(req, res) {
   res.json(validTypes)
 }
 function handleGetPokemon(req, res){
-    res.send('Hello, Pokemon!')
+    let response = POKEDEX.pokemon
+    const { name, type } = req.query
+    if (name){
+        response = response.filter(pokemon => 
+            pokemon.name.toLowerCase().includes(name.toLowerCase())
+        )
+    }
+    if(type){
+        response = response.filter(pokemon => pokemon.type.includes(type))
+    }
+
+    res.json(response)
 }
 
 app.get('/pokemon', handleGetPokemon)
